@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='55,5 20,50 45,50 35,95 80,45 52,45' fill='%23f1c40f' stroke='%23d35400' stroke-width='4'/></svg>">
+    <title>Mapa osigurača</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --danger: #e74c3c;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg);
+        }
+
+        /* Sidebar sa filterima */
+        #sidebar {
+            width: 320px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        
+        .filter-group { margin-bottom: 20px; }
+        .filter-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9em; }
+        
+        select[multiple] {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .checkbox-group { display: flex; flex-direction: column; gap: 5px; }
+        .checkbox-group label.disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Kontejner za mapu */
+        #map-container {
+            flex-grow: 1;
+            position: relative;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        svg#floorplan {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            max-height: 85vh;
+        }
+
+        .room { fill: #fff; stroke: #333; stroke-width: 2; }
+        .room-label { font-size: 14px; font-weight: bold; fill: #7f8c8d; pointer-events: none; }
+        
+        .connection-line {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.1));
+        }
+
+        .fuse-box { fill: #f1c40f; stroke: #d35400; stroke-width: 2; }
+
+        .device-node { r: 5; fill: #333; }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Custom Tooltip */
+        .tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 280px;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .tooltip.visible { opacity: 1; }
+        
+        /* Mobile tooltip - bottom sheet style */
+        @media (max-width: 900px) {
+            .tooltip {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                max-width: 100%;
+                width: 100%;
+                border-radius: 16px 16px 0 0;
+                padding: 16px 20px 20px;
+                box-sizing: border-box;
+                transform: translateY(100%);
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+                pointer-events: auto;
+            }
+            .tooltip.visible {
+                transform: translateY(0);
+            }
+            .tooltip::before {
+                content: '';
+                display: block;
+                width: 40px;
+                height: 4px;
+                background: #ddd;
+                border-radius: 2px;
+                margin: 0 auto 12px;
+            }
+            .tooltip-close {
+                position: absolute;
+                top: 12px;
+                right: 16px;
+                width: 28px;
+                height: 28px;
+                border: none;
+                background: #f0f0f0;
+                border-radius: 50%;
+                font-size: 18px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #666;
+            }
+        }
+        @media (min-width: 901px) {
+            .tooltip-close { display: none; }
+        }
+        .tooltip-header {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent);
+        }
+        .tooltip-row {
+            display: flex;
+            margin: 4px 0;
+        }
+        .tooltip-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 80px;
+        }
+        .tooltip-value {
+            color: #333;
+        }
+        .tooltip-devices {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+        .tooltip-devices-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .device-tag {
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        .ground-yes { color: var(--success); font-weight: bold; }
+        .ground-no { color: var(--danger); font-weight: bold; }
+
+        /* Mobile responsive */
+        @media (max-width: 900px) {
+            html, body {
+                overflow-x: hidden;
+                width: 100%;
+            }
+            
+            body {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            #sidebar {
+                width: 100%;
+                box-sizing: border-box;
+                max-height: 35vh;
+                overflow-y: auto;
+                padding: 12px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            
+            .filter-group {
+                margin-bottom: 10px;
+            }
+            
+            .filter-group > label {
+                margin-bottom: 5px;
+            }
+            
+            .checkbox-group {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            
+            .checkbox-group label {
+                font-size: 0.8em;
+                white-space: nowrap;
+            }
+            
+            #map-container {
+                flex: 1;
+                padding: 10px;
+                overflow: visible;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            svg#floorplan {
+                display: block;
+                width: 95%;
+                max-width: 100%;
+                height: auto;
+                min-width: unset;
+                margin: 0 auto;
+            }
+            
+            .legend {
+                position: static;
+                width: 90%;
+                margin: 10px auto;
+                text-align: center;
+                font-size: 10px;
+                padding: 8px;
+            }
+            
+            .tooltip {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            #sidebar {
+                max-height: 30vh;
+                padding: 8px;
+            }
+            
+            h2 {
+                font-size: 1em;
+                margin-bottom: 8px;
+                padding-bottom: 6px;
+            }
+            
+            .filter-group {
+                margin-bottom: 8px;
+            }
+            
+            .filter-group > label {
+                font-size: 0.75em;
+                margin-bottom: 4px;
+            }
+            
+            .checkbox-group label {
+                font-size: 0.7em;
+            }
+            
+            #sidebar > div:last-child {
+                display: none;
+            }
+            
+            #map-container {
+                padding: 5px;
+            }
+            
+            svg#floorplan {
+                width: 98%;
+            }
+            
+            .legend {
+                font-size: 9px;
+                padding: 6px;
+                width: 95%;
+            }
+            
+            .room-label {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>Filter</h2>
+    
+    <div class="filter-group">
+        <label>Izaberi Osigurače:</label>
+        <div id="fuse-filters" class="checkbox-group"></div>
+    </div>
+
+    <div class="filter-group">
+        <label>Vrsta:</label>
+        <div id="type-filters" class="checkbox-group"></div>
+    </div>
+
+    <div class="filter-group">
+        <label>Uzemljenje:</label>
+        <div id="ground-filters" class="checkbox-group"></div>
+    </div>
+
+    <div class="filter-group">
+        <label>Soba:</label>
+        <div id="room-filters" class="checkbox-group"></div>
+    </div>
+
+    <div style="font-size: 11px; color: #7f8c8d; margin-top: 40px;">
+        * Osigurači 3,5,6 I 8 trebaju biti uvek spušteni.<br>
+        * Osigurači 1,2,4,7,9,10,11 trebaju biti uvek podignuti.<br>
+        * Osigurači 12,13,14 mogu da se spustaju jer se odnose samo na kupatilo ako se putuje i slično.
+    </div>
+</div>
+
+<div id="map-container">
+    <svg id="floorplan" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet">
+        
+
+        <rect class="room" x="350" y="250" width="100" height="400" />
+        <text class="room-label" x="360" y="580">Predsoblje</text>
+
+        <rect class="room" x="50" y="50" width="300" height="300" />
+        <text class="room-label" x="60" y="120">Dnevna Soba</text>
+
+        <rect class="room" x="350" y="50" width="250" height="200" />
+        <text class="room-label" x="400" y="70">Kuhinja</text>
+
+        <rect class="room" x="50" y="350" width="300" height="300" />
+        <text class="room-label" x="60" y="470">Spavaća Soba</text>
+
+        <rect class="room" x="450" y="300" width="150" height="180" />
+        <text class="room-label" x="460" y="420">Kupatilo</text>
+
+        <rect class="room" x="350" y="0" width="250" height="50" stroke-dasharray="5,5" />
+        <text class="room-label" x="400" y="30">Lođa</text>
+        <rect class="room" x="10" y="100" width="40" height="200" stroke-dasharray="5,5" />
+        <text class="room-label" x="15" y="120" transform="rotate(90, 15, 120)">Terasa</text>
+
+        <rect id="FUSE_BOX" class="fuse-box" x="360" y="600" width="80" height="30" />
+        <text x="385" y="620" style="font-size: 10px; font-weight: bold;">TABLA</text>
+
+        <g id="connections-layer"></g>
+    </svg>
+
+    <div class="legend">
+        <b>Legenda:</b><br>
+        <span style="color: var(--success)">▬▬</span> Sa uzemljenjem<br>
+        <span style="color: var(--danger)">▬▬</span> Bez uzemljenja (NE)<br>
+        <span style="color: #e67e22">▬▬</span> Neaktivna<br>
+        <span style="color: #999">▬▬</span> Svetlo / Nema utičnice<br>
+        <span style="color: var(--success)">- -</span> / <span style="color: var(--danger)">- -</span> Povezane tačke<br>
+        <svg width="16" height="16" style="vertical-align: middle; display: inline-block;"><circle cx="8" cy="8" r="7" fill="#666" stroke="#333" stroke-width="1"/><circle cx="5" cy="8" r="1.5" fill="#fff"/><circle cx="11" cy="8" r="1.5" fill="#fff"/></svg> Utičnica &nbsp;
+        <svg width="12" height="16" style="vertical-align: middle; display: inline-block;"><rect x="0" y="0" width="12" height="16" rx="2" fill="#666" stroke="#333" stroke-width="1"/><rect x="3" y="3" width="6" height="5" rx="1" fill="#fff"/></svg> Prekidač
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+</div>
+
+<script>
+    const electricalData = [
+        { id: 1, children: [2,7,5,4,9,8], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: [], osigurac: 1, x: 340, y: 250 },
+        { id: 2, children: [3], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["norveški radijator"], osigurac: 1, x: 150, y: 60 },
+        { id: 3, children: [10], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 1, x: 70, y: 60 },
+        { id: 4, children: [], vrsta: "Prekidač", detalji: {}, soba: "Dnevna soba", uredjaji: ["glavno svetlo"], osigurac: 1, x: 340, y: 310 },
+        { id: 5, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["glavno svetlo"], osigurac: 1, x: 420, y: 260 },
+        { id: 6, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led panel"], osigurac: 1, x: 430, y: 260 },
+        { id: 7, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: [], osigurac: 1, x: 440, y: 240 },
+        { id: 8, children: [], vrsta: "Prekidač", detalji: {}, soba: "Predsoblje", uredjaji: ["glavno svetlo"], osigurac: 1, x: 355, y: 600 },
+        { id: 9, children: [], vrsta: "Prekidač", detalji: {}, soba: "Spavaća soba", uredjaji: ["glavno svetlo"], osigurac: 1, x: 340, y: 400 },
+        { id: 10, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Terasa", uredjaji: [], osigurac: 1, x: 40, y: 150 },
+        { id: 11, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led kanal"], osigurac: 2, x: 590, y: 200 },
+        { id: 12, children: [13,14,11], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: [], osigurac: 2, x: 360, y: 120 },
+        { id: 13, children: [15], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 2, x: 360, y: 60 },
+        { id: 14, children: [], vrsta: "Prekidač", detalji: {}, soba: "Lođa", uredjaji: ["glavno svetlo"], osigurac: 2, x: 380, y: 60 },
+        { id: 15, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Lođa", uredjaji: [], osigurac: 2, x: 360, y: 25 },
+        { id: 16, children: [35], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["utičnica na samom ormanu"], osigurac: 4, x: 90, y: 360 },
+        { id: 17, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Spavaća soba", uredjaji: [], osigurac: 5, x: 150, y: 640, disabled: true },
+        { id: 18, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["pecin radni prostor"], osigurac: 7, x: 360, y: 140 },
+        { id: 19, children: [20], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["punjači za telefone", "sat"], osigurac: 9, x: 250, y: 640 },
+        { id: 20, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["xiaomi kamera"], osigurac: 9, x: 100, y: 640 },
+        { id: 21, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: [], osigurac: 10, x: 300, y: 340 },
+        { id: 22, children: [21,23], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["lampe na klaviru"], osigurac: 10, x: 340, y: 280 },
+        { id: 23, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["frižider", "mikrotalasna", "veš mašina", "šporet"], osigurac: 10, x: 590, y: 100 },
+        { id: 33, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["hisense televizor", "jbl zvučnici", "sbb modem", "sony playstation"], osigurac: 11, x: 200, y: 340 },
+        { id: 24, children: [33], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["xiaomi robot usisivač"], osigurac: 11, x: 90, y: 340 },
+        { id: 25, children: [24], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["katarinin radni prostor"], osigurac: 11, x: 60, y: 500 },
+        { id: 26, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["candy sudomašina"], osigurac: 12, x: 500, y: 240 },
+        { id: 27, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["glavno svetlo"], osigurac: 12, x: 440, y: 350 },
+        { id: 28, children: [27,26], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: [], osigurac: 12, x: 520, y: 350 },
+        { id: 29, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["ventilacija", "pomocno svetlo"], osigurac: 13, x: 440, y: 360 },
+        { id: 30, children: [29], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: [], osigurac: 13, x: 460, y: 450 },
+        { id: 31, children: [32], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: ["bosch bojler"], osigurac: 14, x: 480, y: 470 },
+        { id: 32, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["bosch bojler"], osigurac: 14, x: 440, y: 370 },
+        { id: 34, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "/" }, soba: "Spavaća soba", uredjaji: [], osigurac: 0, x: 340, y: 450 },
+        { id: 35, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["xiaomi ruter", "norveški radijator", "lg televizor", "eon box", "punjač za lampu"], osigurac: 4, x: 120, y: 360 },
+    ];
+
+    // Helper za pronalazenje itema po ID-u
+    function getItemById(id) {
+        return electricalData.find(item => item.id === id);
+    }
+
+    // Helper funkcija za dobijanje uzemljenja (iz detalji ili "/" za Prekidače)
+    function getUzemljenje(item) {
+        return item.detalji?.uzemljenje || '/';
+    }
+
+    const fuseSource = { x: 400, y: 615 };
+
+    function updateMap() {
+        const layer = document.getElementById('connections-layer');
+        layer.innerHTML = ''; // Očisti stare linije
+
+        // Prikupi sve ID-jeve koji su children (da im se ne crta linija iz table)
+        const allChildIds = new Set();
+        electricalData.forEach(item => {
+            if (item.children && item.children.length > 0) {
+                item.children.forEach(childId => allChildIds.add(childId));
+            }
+        });
+
+        // Uzmi vrednosti iz filtera
+        const selectedFuses = Array.from(document.querySelectorAll('.fuse-filter:checked')).map(cb => parseInt(cb.value));
+        const selectedTypes = Array.from(document.querySelectorAll('.type-filter:checked')).map(cb => cb.value);
+        const selectedGrounds = Array.from(document.querySelectorAll('.ground-filter:checked')).map(cb => cb.value);
+        const selectedRooms = Array.from(document.querySelectorAll('.room-filter:checked')).map(cb => cb.value);
+
+        const filtered = electricalData.filter(item => {
+            const uzemljenje = getUzemljenje(item);
+            return (selectedFuses.length === 0 || selectedFuses.includes(item.osigurac)) &&
+                   selectedTypes.includes(item.vrsta) &&
+                   selectedGrounds.includes(uzemljenje) &&
+                   selectedRooms.includes(item.soba);
+        });
+
+        filtered.forEach(item => {
+            // Crtanje linije iz table samo ako nije child i nije prekidač
+            if (!allChildIds.has(item.id) && item.vrsta !== "Prekidač") {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                
+                // Boja na osnovu uzemljenja i disabled statusa
+                const uzemljenje = getUzemljenje(item);
+                let color = "#95a5a6"; // Siva za svetlo
+                if (item.disabled) {
+                    color = "#e67e22"; // Narandžasta za disabled
+                } else if (uzemljenje === "DA") {
+                    color = "#27ae60"; // Zelena
+                } else if (uzemljenje === "NE") {
+                    color = "#e74c3c"; // Crvena
+                }
+
+                // Napravi blago zakrivljenu liniju
+                const dx = item.x - fuseSource.x;
+                const dy = item.y - fuseSource.y;
+                const midX = fuseSource.x + dx * 0.5;
+                const midY = fuseSource.y + dy * 0.1; // Malo zakrivljenje
+
+                const d = `M ${fuseSource.x} ${fuseSource.y} Q ${midX} ${midY} ${item.x} ${item.y}`;
+                
+                line.setAttribute("d", d);
+                line.setAttribute("class", "connection-line");
+                line.setAttribute("stroke", color);
+                
+                // Tooltip podaci
+                const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                title.textContent = `Osigurač: ${item.osigurac} | Soba: ${item.soba} | Uzemljenje: ${item.uzemljenje}`;
+                line.appendChild(title);
+
+                layer.appendChild(line);
+            }
+
+            // Crtanje isprekidanih linija ka children
+            if (item.children && item.children.length > 0) {
+                const parentUzemljenje = getUzemljenje(item);
+                let childLineColor = "#333"; // Crna za ostalo
+                if (parentUzemljenje === "DA") {
+                    childLineColor = "#27ae60"; // Zelena
+                } else if (parentUzemljenje === "NE") {
+                    childLineColor = "#e74c3c"; // Crvena
+                }
+                
+                item.children.forEach(childId => {
+                    const child = getItemById(childId);
+                    if (child) {
+                        const childLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                        childLine.setAttribute("x1", item.x);
+                        childLine.setAttribute("y1", item.y);
+                        childLine.setAttribute("x2", child.x);
+                        childLine.setAttribute("y2", child.y);
+                        childLine.setAttribute("stroke", childLineColor);
+                        childLine.setAttribute("stroke-width", "2");
+                        childLine.setAttribute("stroke-dasharray", "5,5");
+                        childLine.style.opacity = "0.7";
+                        layer.appendChild(childLine);
+                    }
+                });
+            }
+
+            // Dodaj ikonicu na kraju
+            const circleUzemljenje = getUzemljenje(item);
+            let iconColor = "#333"; // Crna za ostalo
+            if (circleUzemljenje === "DA") {
+                iconColor = "#27ae60"; // Zelena
+            } else if (circleUzemljenje === "NE") {
+                iconColor = "#e74c3c"; // Crvena
+            }
+            
+            const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            iconGroup.style.cursor = "pointer";
+            
+            if (item.vrsta === "Utičnica") {
+                const broj = item.detalji?.broj || 1;
+                
+                if (broj >= 2) {
+                    // Dupla utičnica - pravougaonik sa 4 rupice
+                    const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    bg.setAttribute("x", item.x - 12);
+                    bg.setAttribute("y", item.y - 6);
+                    bg.setAttribute("width", "24");
+                    bg.setAttribute("height", "12");
+                    bg.setAttribute("rx", "3");
+                    bg.setAttribute("fill", iconColor);
+                    bg.setAttribute("stroke", "#333");
+                    bg.setAttribute("stroke-width", "1");
+                    iconGroup.appendChild(bg);
+                    
+                    // Leva utičnica - 2 rupice
+                    const hole1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole1.setAttribute("cx", item.x - 8);
+                    hole1.setAttribute("cy", item.y - 2);
+                    hole1.setAttribute("r", "1.2");
+                    hole1.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole1);
+                    
+                    const hole2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole2.setAttribute("cx", item.x - 8);
+                    hole2.setAttribute("cy", item.y + 2);
+                    hole2.setAttribute("r", "1.2");
+                    hole2.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole2);
+                    
+                    // Desna utičnica - 2 rupice
+                    const hole3 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole3.setAttribute("cx", item.x + 8);
+                    hole3.setAttribute("cy", item.y - 2);
+                    hole3.setAttribute("r", "1.2");
+                    hole3.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole3);
+                    
+                    const hole4 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole4.setAttribute("cx", item.x + 8);
+                    hole4.setAttribute("cy", item.y + 2);
+                    hole4.setAttribute("r", "1.2");
+                    hole4.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole4);
+                } else {
+                    // Pojedinačna utičnica - krug sa 2 rupice
+                    const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    bg.setAttribute("cx", item.x);
+                    bg.setAttribute("cy", item.y);
+                    bg.setAttribute("r", "8");
+                    bg.setAttribute("fill", iconColor);
+                    bg.setAttribute("stroke", "#333");
+                    bg.setAttribute("stroke-width", "1");
+                    iconGroup.appendChild(bg);
+                    
+                    // Leva rupica
+                    const hole1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole1.setAttribute("cx", item.x - 3);
+                    hole1.setAttribute("cy", item.y);
+                    hole1.setAttribute("r", "1.5");
+                    hole1.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole1);
+                    
+                    // Desna rupica
+                    const hole2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole2.setAttribute("cx", item.x + 3);
+                    hole2.setAttribute("cy", item.y);
+                    hole2.setAttribute("r", "1.5");
+                    hole2.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole2);
+                }
+            } else if (item.vrsta === "Prekidač") {
+                // Ikonica prekidača - pravougaonik sa prekidačem
+                const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                bg.setAttribute("x", item.x - 6);
+                bg.setAttribute("y", item.y - 8);
+                bg.setAttribute("width", "12");
+                bg.setAttribute("height", "16");
+                bg.setAttribute("rx", "2");
+                bg.setAttribute("fill", iconColor);
+                bg.setAttribute("stroke", "#333");
+                bg.setAttribute("stroke-width", "1");
+                iconGroup.appendChild(bg);
+                
+                // Toggle dugme
+                const toggle = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                toggle.setAttribute("x", item.x - 3);
+                toggle.setAttribute("y", item.y - 5);
+                toggle.setAttribute("width", "6");
+                toggle.setAttribute("height", "5");
+                toggle.setAttribute("rx", "1");
+                toggle.setAttribute("fill", "#fff");
+                iconGroup.appendChild(toggle);
+            } else {
+                // Fallback - obična tačka
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", item.x);
+                circle.setAttribute("cy", item.y);
+                circle.setAttribute("r", "4");
+                circle.setAttribute("fill", iconColor);
+                iconGroup.appendChild(circle);
+            }
+            
+            // Hover events za tooltip
+            iconGroup.addEventListener("mouseenter", (e) => showTooltip(e, item));
+            iconGroup.addEventListener("mouseleave", hideTooltip);
+            iconGroup.addEventListener("mousemove", moveTooltip);
+            
+            layer.appendChild(iconGroup);
+        });
+    }
+
+    // Tooltip funkcije
+    const tooltip = document.getElementById('tooltip');
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+
+    function showTooltip(event, item) {
+        const uzemljenje = getUzemljenje(item);
+        const groundClass = uzemljenje === 'DA' ? 'ground-yes' : (uzemljenje === 'NE' ? 'ground-no' : '');
+        const groundText = uzemljenje === 'DA' ? 'DA ✓' : (uzemljenje === 'NE' ? 'NE ✗' : '/');
+        
+        let devicesHtml = '';
+        if (item.uredjaji && item.uredjaji.length > 0) {
+            devicesHtml = `
+                <div class="tooltip-devices">
+                    <span class="tooltip-label">Uređaji:</span>
+                    <div class="tooltip-devices-list">
+                        ${item.uredjaji.map(u => `<span class="device-tag">${u.toUpperCase()}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Dinamicko generisanje detalja iz objekta (bez uzemljenja - to se prikazuje posebno)
+        const detaljiLabels = { broj: 'Broj', tip: 'Tip' };
+        let detaljiHtml = '';
+        if (item.detalji && Object.keys(item.detalji).length > 0) {
+            detaljiHtml = Object.entries(item.detalji)
+                .filter(([key]) => key !== 'uzemljenje') // Uzemljenje se prikazuje posebno
+                .map(([key, value]) => `
+                <div class="tooltip-row">
+                    <span class="tooltip-label">${detaljiLabels[key] || key}:</span>
+                    <span class="tooltip-value"><strong>${value.toString().toUpperCase()}</strong></span>
+                </div>
+            `).join('');
+        }
+
+        // Disabled status
+        let disabledHtml = '';
+        if (item.disabled) {
+            disabledHtml = `
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Status:</span>
+                    <span class="tooltip-value" style="color: #e67e22; font-weight: bold;">NEAKTIVNA</span>
+                </div>
+            `;
+        }
+
+        // Children info
+        let childrenHtml = '';
+        if (item.children && item.children.length > 0) {
+            childrenHtml = `
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Povezano sa:</span>
+                    <span class="tooltip-value" style="color: #9b59b6;">ID: ${item.children.join(', ')}</span>
+                </div>
+            `;
+        }
+
+        tooltip.innerHTML = `
+            <button class="tooltip-close" onclick="hideTooltip()">&times;</button>
+            <div class="tooltip-header">${item.vrsta} - ${item.soba}</div>
+            <div class="tooltip-row" style="opacity: 0.6; font-size: 11px;">
+                <span class="tooltip-label">ID:</span>
+                <span class="tooltip-value">${item.id}</span>
+            </div>
+            ${disabledHtml}
+            <div class="tooltip-row">
+                <span class="tooltip-label">Osigurač:</span>
+                <span class="tooltip-value">#${item.osigurac}</span>
+            </div>
+            ${detaljiHtml}
+            ${uzemljenje !== '/' ? `<div class="tooltip-row">
+                <span class="tooltip-label">Uzemljenje:</span>
+                <span class="tooltip-value ${groundClass}">${groundText}</span>
+            </div>` : ''}
+            ${childrenHtml}
+            ${devicesHtml}
+            <div class="tooltip-row">
+                <span class="tooltip-label">Koordinate:</span>
+                <span class="tooltip-value">(${item.x}, ${item.y})</span>
+            </div>
+        `;
+        
+        tooltip.classList.add('visible');
+        
+        // Na desktopu pozicioniramo uz kursor, na mobilnom je fiksiran na dnu
+        if (!isMobile) {
+            moveTooltip(event);
+        }
+    }
+
+    function hideTooltip() {
+        tooltip.classList.remove('visible');
+    }
+
+    function moveTooltip(event) {
+        // Na mobilnom tooltip je fiksiran na dnu ekrana
+        if (isMobile) return;
+        
+        const offsetX = 15;
+        const offsetY = 15;
+        
+        const rect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        let x = event.clientX + offsetX;
+        let y = event.clientY + offsetY;
+        
+        // Spreči da tooltip izađe van ekrana horizontalno
+        if (x + rect.width > viewportWidth - 10) {
+            x = Math.max(10, event.clientX - rect.width - offsetX);
+        }
+        if (x < 10) {
+            x = 10;
+        }
+        
+        // Spreči da tooltip izađe van ekrana vertikalno
+        if (y + rect.height > viewportHeight - 10) {
+            y = Math.max(10, event.clientY - rect.height - offsetY);
+        }
+        if (y < 10) {
+            y = 10;
+        }
+        
+        tooltip.style.left = (x + scrollX) + 'px';
+        tooltip.style.top = (y + scrollY) + 'px';
+    }
+
+    // Inicijalno iscrtavanje
+    initFilters();
+    updateFuseCounts();
+    updateMap();
+
+    // Funkcija za ažuriranje brojeva u osiguračima na osnovu drugih filtera
+    function updateFuseCounts() {
+        const selectedTypes = Array.from(document.querySelectorAll('.type-filter:checked')).map(cb => cb.value);
+        const selectedGrounds = Array.from(document.querySelectorAll('.ground-filter:checked')).map(cb => cb.value);
+        const selectedRooms = Array.from(document.querySelectorAll('.room-filter:checked')).map(cb => cb.value);
+        
+        const usedFuses = new Set(electricalData.map(item => item.osigurac));
+        const maxFuse = Math.max(...usedFuses);
+        
+        for (let i = 1; i <= maxFuse; i++) {
+            const countSpan = document.getElementById(`fuse-count-${i}`);
+            const checkbox = document.querySelector(`.fuse-filter[value="${i}"]`);
+            if (countSpan && checkbox) {
+                const count = electricalData.filter(item => {
+                    const uzemljenje = getUzemljenje(item);
+                    return item.osigurac === i &&
+                           selectedTypes.includes(item.vrsta) &&
+                           selectedGrounds.includes(uzemljenje) &&
+                           selectedRooms.includes(item.soba);
+                }).length;
+                countSpan.textContent = `(${count})`;
+                
+                // Disable/enable na osnovu count-a
+                const label = checkbox.parentElement;
+                if (count === 0) {
+                    checkbox.disabled = true;
+                    checkbox.checked = false;
+                    label.classList.add('disabled');
+                } else {
+                    checkbox.disabled = false;
+                    label.classList.remove('disabled');
+                }
+            }
+        }
+    }
+
+    // Dinamicko generisanje filtera iz podataka
+    function initFilters() {
+        // Osiguraci - od 1 do max, sa disabled za one koji nisu u podacima
+        const fuseContainer = document.getElementById('fuse-filters');
+        const usedFuses = new Set(electricalData.map(item => item.osigurac));
+        const maxFuse = Math.max(...usedFuses);
+        
+        for (let i = 1; i <= maxFuse; i++) {
+            const isUsed = usedFuses.has(i);
+            const count = electricalData.filter(item => item.osigurac === i).length;
+            const label = document.createElement('label');
+            if (!isUsed) label.className = 'disabled';
+            label.innerHTML = `<input type="checkbox" class="fuse-filter" value="${i}" ${isUsed ? 'onchange="updateMap()"' : 'disabled'}> Osigurač ${i}${isUsed ? ` <span id="fuse-count-${i}">(${count})</span>` : ''}`;
+            fuseContainer.appendChild(label);
+        }
+
+        // Vrsta
+        const typeContainer = document.getElementById('type-filters');
+        const types = [...new Set(electricalData.map(item => item.vrsta))];
+        const typeLabels = { 'Utičnica': 'Utičnice', 'Prekidač': 'Prekidači' };
+        types.forEach(type => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" class="type-filter" value="${type}" checked onchange="updateFuseCounts(); updateMap()"> ${typeLabels[type] || type}`;
+            typeContainer.appendChild(label);
+        });
+
+        // Uzemljenje
+        const groundContainer = document.getElementById('ground-filters');
+        const grounds = [...new Set(electricalData.map(item => getUzemljenje(item)))];
+        const groundLabels = { 'DA': 'Sa uzemljenjem', 'NE': 'Bez uzemljenja', '/': 'Ostalo' };
+        grounds.forEach(ground => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" class="ground-filter" value="${ground}" checked onchange="updateFuseCounts(); updateMap()"> ${groundLabels[ground] || ground}`;
+            groundContainer.appendChild(label);
+        });
+
+        // Sobe
+        const roomContainer = document.getElementById('room-filters');
+        const rooms = [...new Set(electricalData.map(item => item.soba))];
+        rooms.forEach(room => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" class="room-filter" value="${room}" checked onchange="updateFuseCounts(); updateMap()"> ${room}`;
+            roomContainer.appendChild(label);
+        });
+    }
+</script>
+
+</body>
+</html>
