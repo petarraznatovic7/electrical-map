@@ -19,3 +19,5 @@ Generalno ne znam kojim redom se i kako povezuje sa razvodne table, tako da nacr
 
 ## Pokretanje
 Otvorite `index.html` u web pregledaču. Nije potreban server. Potrebno je predefinisati koordinate prostorija kao i utičnica.
+
+Demo: https://petarraznatovic7.github.io/electrical-map/
