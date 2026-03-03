@@ -352,9 +352,10 @@
     </div>
 
     <div style="font-size: 11px; color: #7f8c8d; margin-top: 40px;">
-        * Osigurači 3,5,6 I 8 trebaju biti uvek spušteni.<br>
+        * Osigurači 3,6 I 8 trebaju biti uvek spušteni.<br>
         * Osigurači 1,2,4,7,9,10,11 trebaju biti uvek podignuti.<br>
-        * Osigurači 12,13,14 mogu da se spustaju jer se odnose samo na kupatilo ako se putuje i slično.
+        * Osigurači 12,13,14 mogu da se spustaju jer se odnose samo na kupatilo i sudomašinu ako se putuje i slično.<br>
+        * Osigurač 5 se koristi samo za zvono i utičnicu u spavaćoj sobi koja se ne koristi, pa može da se spusti ako se želi isključiti zvono.
     </div>
 </div>
 
@@ -404,31 +405,31 @@
 
 <script>
     const electricalData = [
-        { id: 1, children: [2,7,5,4,9,8], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: [], osigurac: 1, x: 340, y: 250 },
+        { id: 1, children: [2,7,5,4,9,8], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: [], osigurac: 1, x: 335, y: 250 },
         { id: 2, children: [3], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["norveški radijator"], osigurac: 1, x: 150, y: 60 },
-        { id: 3, children: [10], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 1, x: 70, y: 60 },
+        { id: 3, children: [10], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 1, x: 60, y: 60 },
         { id: 4, children: [], vrsta: "Prekidač", detalji: {}, soba: "Dnevna soba", uredjaji: ["glavno svetlo"], osigurac: 1, x: 340, y: 310 },
-        { id: 5, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["glavno svetlo"], osigurac: 1, x: 420, y: 260 },
-        { id: 6, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led panel"], osigurac: 1, x: 430, y: 260 },
+        { id: 5, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["glavno svetlo"], osigurac: 1, x: 430, y: 260 },
+        { id: 6, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led panel"], osigurac: 1, x: 440, y: 260 },
         { id: 7, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: [], osigurac: 1, x: 440, y: 240 },
-        { id: 8, children: [], vrsta: "Prekidač", detalji: {}, soba: "Predsoblje", uredjaji: ["glavno svetlo"], osigurac: 1, x: 355, y: 600 },
+        { id: 8, children: [], vrsta: "Prekidač", detalji: {}, soba: "Predsoblje", uredjaji: ["glavno svetlo"], osigurac: 1, x: 360, y: 600 },
         { id: 9, children: [], vrsta: "Prekidač", detalji: {}, soba: "Spavaća soba", uredjaji: ["glavno svetlo"], osigurac: 1, x: 340, y: 400 },
         { id: 10, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Terasa", uredjaji: [], osigurac: 1, x: 40, y: 150 },
-        { id: 11, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led kanal"], osigurac: 2, x: 590, y: 200 },
+        { id: 11, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led kanal"], osigurac: 2, x: 585, y: 200 },
         { id: 12, children: [13,14,11], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: [], osigurac: 2, x: 360, y: 120 },
-        { id: 13, children: [15], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 2, x: 360, y: 60 },
+        { id: 13, children: [15], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 2, x: 360, y: 65 },
         { id: 14, children: [], vrsta: "Prekidač", detalji: {}, soba: "Lođa", uredjaji: ["glavno svetlo"], osigurac: 2, x: 380, y: 60 },
-        { id: 15, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Lođa", uredjaji: [], osigurac: 2, x: 360, y: 25 },
+        { id: 15, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Lođa", uredjaji: [], osigurac: 2, x: 360, y: 35 },
         { id: 16, children: [35], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["utičnica na samom ormanu"], osigurac: 4, x: 90, y: 360 },
-        { id: 17, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Spavaća soba", uredjaji: [], osigurac: 5, x: 150, y: 640, disabled: true },
+        { id: 17, children: [38], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Spavaća soba", uredjaji: [], osigurac: 5, x: 150, y: 640},
         { id: 18, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["pecin radni prostor"], osigurac: 7, x: 360, y: 140 },
         { id: 19, children: [20], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["punjači za telefone", "sat"], osigurac: 9, x: 250, y: 640 },
         { id: 20, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["xiaomi kamera"], osigurac: 9, x: 100, y: 640 },
         { id: 21, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: [], osigurac: 10, x: 300, y: 340 },
         { id: 22, children: [21,23], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["lampe na klaviru"], osigurac: 10, x: 340, y: 280 },
-        { id: 23, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["frižider", "mikrotalasna", "veš mašina", "šporet"], osigurac: 10, x: 590, y: 100 },
-        { id: 33, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["hisense televizor", "jbl zvučnici", "sbb modem", "sony playstation"], osigurac: 11, x: 200, y: 340 },
-        { id: 24, children: [33], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["xiaomi robot usisivač"], osigurac: 11, x: 90, y: 340 },
+        { id: 23, children: [36], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["frižider", "mikrotalasna", "veš mašina", "šporet"], osigurac: 10, x: 585, y: 100 },
+        { id: 33, children: [24], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["hisense televizor", "jbl zvučnici", "sbb modem", "sony playstation"], osigurac: 11, x: 200, y: 340 },
+        { id: 24, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["xiaomi robot usisivač"], osigurac: 11, x: 60, y: 340 },
         { id: 25, children: [24], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["katarinin radni prostor"], osigurac: 11, x: 60, y: 500 },
         { id: 26, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["candy sudomašina"], osigurac: 12, x: 500, y: 240 },
         { id: 27, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["glavno svetlo"], osigurac: 12, x: 440, y: 350 },
@@ -439,6 +440,9 @@
         { id: 32, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["bosch bojler"], osigurac: 14, x: 440, y: 370 },
         { id: 34, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "/" }, soba: "Spavaća soba", uredjaji: [], osigurac: 0, x: 340, y: 450 },
         { id: 35, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["xiaomi ruter", "norveški radijator", "lg televizor", "eon box", "punjač za lampu"], osigurac: 4, x: 120, y: 360 },
+        { id: 36, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "trofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: [], osigurac: 10, x: 585, y: 130 },
+        { id: 37, children: [16], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: [], osigurac: 4, x: 150, y: 340 },
+        { id: 38, children: [], vrsta: "Prekidač", detalji: {}, soba: "Predsoblje", uredjaji: ["zvono"], osigurac: 5, x: 360, y: 660 },
     ];
 
     // Helper za pronalazenje itema po ID-u
@@ -599,6 +603,40 @@
                     hole4.setAttribute("r", "1.2");
                     hole4.setAttribute("fill", "#fff");
                     iconGroup.appendChild(hole4);
+                } else if (item.detalji?.tip === "trofazna") {
+                    // Trofazna utičnica - krug sa 3 rupice u trougaonom rasporedu
+                    const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    bg.setAttribute("cx", item.x);
+                    bg.setAttribute("cy", item.y);
+                    bg.setAttribute("r", "9");
+                    bg.setAttribute("fill", iconColor);
+                    bg.setAttribute("stroke", "#333");
+                    bg.setAttribute("stroke-width", "1");
+                    iconGroup.appendChild(bg);
+                    
+                    // Gornja rupica
+                    const hole1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole1.setAttribute("cx", item.x);
+                    hole1.setAttribute("cy", item.y - 3.5);
+                    hole1.setAttribute("r", "1.5");
+                    hole1.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole1);
+                    
+                    // Donja leva rupica
+                    const hole2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole2.setAttribute("cx", item.x - 3);
+                    hole2.setAttribute("cy", item.y + 2);
+                    hole2.setAttribute("r", "1.5");
+                    hole2.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole2);
+                    
+                    // Donja desna rupica
+                    const hole3 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    hole3.setAttribute("cx", item.x + 3);
+                    hole3.setAttribute("cy", item.y + 2);
+                    hole3.setAttribute("r", "1.5");
+                    hole3.setAttribute("fill", "#fff");
+                    iconGroup.appendChild(hole3);
                 } else {
                     // Pojedinačna utičnica - krug sa 2 rupice
                     const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
