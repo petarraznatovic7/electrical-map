@@ -383,8 +383,8 @@
         <rect class="room" x="10" y="100" width="40" height="200" stroke-dasharray="5,5" />
         <text class="room-label" x="15" y="120" transform="rotate(90, 15, 120)">Terasa</text>
 
-        <rect id="FUSE_BOX" class="fuse-box" x="360" y="600" width="80" height="30" />
-        <text x="385" y="620" style="font-size: 10px; font-weight: bold;">TABLA</text>
+        <rect id="FUSE_BOX" class="fuse-box" x="360" y="620" width="80" height="30" />
+        <text x="385" y="620" style="font-size: 10px; font-weight: bold;"></text>
 
         <g id="connections-layer"></g>
     </svg>
@@ -405,9 +405,9 @@
 
 <script>
     const electricalData = [
-        { id: 1, children: [2,7,5,4,9,8], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: [], osigurac: 1, x: 335, y: 250 },
+        { id: 1, children: [2,7,5,4,9,8], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: [], osigurac: 1, x: 335, y: 250, childWaypoints: { 2: [{x: 335, y: 60}], 4: [{x: 250, y: 310}], 9: [{x: 285, y: 400}], 8: [{x: 130, y: 600}] }, waypoints: [{x: 380, y: 300}]  },
         { id: 2, children: [3], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["norveški radijator"], osigurac: 1, x: 150, y: 60 },
-        { id: 3, children: [10], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 1, x: 60, y: 60 },
+        { id: 3, children: [10], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Dnevna soba", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 1, x: 60, y: 60, childWaypoints: { 10: [{x: 60, y: 180}] } },
         { id: 4, children: [], vrsta: "Prekidač", detalji: {}, soba: "Dnevna soba", uredjaji: ["glavno svetlo"], osigurac: 1, x: 340, y: 310 },
         { id: 5, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["glavno svetlo"], osigurac: 1, x: 430, y: 260 },
         { id: 6, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led panel"], osigurac: 1, x: 440, y: 260 },
@@ -416,31 +416,31 @@
         { id: 9, children: [], vrsta: "Prekidač", detalji: {}, soba: "Spavaća soba", uredjaji: ["glavno svetlo"], osigurac: 1, x: 340, y: 400 },
         { id: 10, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Terasa", uredjaji: [], osigurac: 1, x: 40, y: 150 },
         { id: 11, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kuhinja", uredjaji: ["led kanal"], osigurac: 2, x: 585, y: 200 },
-        { id: 12, children: [13,14,11], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: [], osigurac: 2, x: 360, y: 120 },
+        { id: 12, children: [13,14,11], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: [], osigurac: 2, x: 360, y: 120, waypoints: [{x: 420, y: 500}, {x: 410, y: 200}] },
         { id: 13, children: [15], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Kuhinja", uredjaji: ["haier klima", "xiaomi kamera"], osigurac: 2, x: 360, y: 65 },
         { id: 14, children: [], vrsta: "Prekidač", detalji: {}, soba: "Lođa", uredjaji: ["glavno svetlo"], osigurac: 2, x: 380, y: 60 },
         { id: 15, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "NE" }, soba: "Lođa", uredjaji: [], osigurac: 2, x: 360, y: 35 },
         { id: 16, children: [35], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["utičnica na samom ormanu"], osigurac: 4, x: 90, y: 360 },
-        { id: 17, children: [38], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Spavaća soba", uredjaji: [], osigurac: 5, x: 150, y: 640},
-        { id: 18, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["pecin radni prostor"], osigurac: 7, x: 360, y: 140 },
-        { id: 19, children: [20], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["punjači za telefone", "sat"], osigurac: 9, x: 250, y: 640 },
+        { id: 17, children: [38], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "NE" }, soba: "Spavaća soba", uredjaji: [], osigurac: 5, x: 150, y: 640, childWaypoints: { 38: [{x: 150, y: 700}] } },
+        { id: 18, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["pecin radni prostor"], osigurac: 7, x: 360, y: 140 , waypoints: [{x: 400, y: 300}] },
+        { id: 19, children: [20], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["punjači za telefone", "sat"], osigurac: 9, x: 250, y: 640, childWaypoints: { 20: [{x: 200, y: 700}] } },
         { id: 20, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["xiaomi kamera"], osigurac: 9, x: 100, y: 640 },
-        { id: 21, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: [], osigurac: 10, x: 300, y: 340 },
-        { id: 22, children: [21,23], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["lampe na klaviru"], osigurac: 10, x: 340, y: 280 },
-        { id: 23, children: [36], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["frižider", "mikrotalasna", "veš mašina", "šporet"], osigurac: 10, x: 585, y: 100 },
-        { id: 33, children: [24], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["hisense televizor", "jbl zvučnici", "sbb modem", "sony playstation"], osigurac: 11, x: 200, y: 340 },
-        { id: 24, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["xiaomi robot usisivač"], osigurac: 11, x: 60, y: 340 },
-        { id: 25, children: [24], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["katarinin radni prostor"], osigurac: 11, x: 60, y: 500 },
+        { id: 21, children: [22], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: [], osigurac: 10, x: 300, y: 340 , waypoints: [{x: 300, y: 500}] },
+        { id: 22, children: [23], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["lampe na klaviru"], osigurac: 10, x: 340, y: 280},
+        { id: 23, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["frižider", "mikrotalasna", "veš mašina", "šporet"], osigurac: 10, x: 585, y: 100 },
+        { id: 33, children: [24], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["hisense televizor", "jbl zvučnici", "sbb modem", "sony playstation"], osigurac: 11, x: 200, y: 340, childWaypoints: { 24: [{x: 130, y: 300}] } },
+        { id: 24, children: [25], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: ["xiaomi robot usisivač"], osigurac: 11, x: 60, y: 340 },
+        { id: 25, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["katarinin radni prostor"], osigurac: 11, x: 60, y: 500 },
         { id: 26, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: ["candy sudomašina"], osigurac: 12, x: 500, y: 240 },
         { id: 27, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["glavno svetlo"], osigurac: 12, x: 440, y: 350 },
-        { id: 28, children: [27,26], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: [], osigurac: 12, x: 520, y: 350 },
+        { id: 28, children: [27,26], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: [], osigurac: 12, x: 520, y: 350 , waypoints: [{x: 540, y: 500}] },
         { id: 29, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["ventilacija", "pomocno svetlo"], osigurac: 13, x: 440, y: 360 },
-        { id: 30, children: [29], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: [], osigurac: 13, x: 460, y: 450 },
-        { id: 31, children: [32], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: ["bosch bojler"], osigurac: 14, x: 480, y: 470 },
+        { id: 30, children: [29], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: [], osigurac: 13, x: 460, y: 450, childWaypoints: { 29: [{x: 400, y: 360}] } },
+        { id: 31, children: [32], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Kupatilo", uredjaji: ["bosch bojler"], osigurac: 14, x: 480, y: 470, childWaypoints: { 32: [{x: 460, y: 370}] } },
         { id: 32, children: [], vrsta: "Prekidač", detalji: {}, soba: "Kupatilo", uredjaji: ["bosch bojler"], osigurac: 14, x: 440, y: 370 },
         { id: 34, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "/" }, soba: "Spavaća soba", uredjaji: [], osigurac: 0, x: 340, y: 450 },
         { id: 35, children: [], vrsta: "Utičnica", detalji: { broj: 2, tip: "monofazna", uzemljenje: "DA" }, soba: "Spavaća soba", uredjaji: ["xiaomi ruter", "norveški radijator", "lg televizor", "eon box", "punjač za lampu"], osigurac: 4, x: 120, y: 360 },
-        { id: 36, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "trofazna", uzemljenje: "DA" }, soba: "Kuhinja", uredjaji: [], osigurac: 10, x: 585, y: 130 },
+        { id: 36, children: [], vrsta: "Utičnica", detalji: { broj: 1, tip: "trofazna", uzemljenje: "/" }, soba: "Kuhinja", uredjaji: [], osigurac: 0, x: 585, y: 130 , waypoints: [{x: 650, y: 600}] },
         { id: 37, children: [16], vrsta: "Utičnica", detalji: { broj: 1, tip: "monofazna", uzemljenje: "DA" }, soba: "Dnevna soba", uredjaji: [], osigurac: 4, x: 150, y: 340 },
         { id: 38, children: [], vrsta: "Prekidač", detalji: {}, soba: "Predsoblje", uredjaji: ["zvono"], osigurac: 5, x: 360, y: 660 },
     ];
@@ -455,7 +455,7 @@
         return item.detalji?.uzemljenje || '/';
     }
 
-    const fuseSource = { x: 400, y: 615 };
+    const fuseSource = { x: 400, y: 640 };
 
     function updateMap() {
         const layer = document.getElementById('connections-layer');
@@ -499,13 +499,34 @@
                     color = "#e74c3c"; // Crvena
                 }
 
-                // Napravi blago zakrivljenu liniju
-                const dx = item.x - fuseSource.x;
-                const dy = item.y - fuseSource.y;
-                const midX = fuseSource.x + dx * 0.5;
-                const midY = fuseSource.y + dy * 0.1; // Malo zakrivljenje
-
-                const d = `M ${fuseSource.x} ${fuseSource.y} Q ${midX} ${midY} ${item.x} ${item.y}`;
+                // Napravi liniju - sa waypoints ako postoje, inače blago zakrivljenu
+                let d;
+                if (item.waypoints && item.waypoints.length > 0) {
+                    // Koristi waypoints za putanju od table
+                    const points = [fuseSource, ...item.waypoints, { x: item.x, y: item.y }];
+                    d = `M ${points[0].x} ${points[0].y}`;
+                    
+                    for (let i = 1; i < points.length; i++) {
+                        const prev = points[i - 1];
+                        const curr = points[i];
+                        const next = points[i + 1];
+                        
+                        if (next) {
+                            // Kontrolna tačka za glatku krivu
+                            d += ` Q ${curr.x} ${curr.y} ${(curr.x + next.x) / 2} ${(curr.y + next.y) / 2}`;
+                        } else {
+                            // Poslednji segment
+                            d += ` T ${curr.x} ${curr.y}`;
+                        }
+                    }
+                } else {
+                    // Bez waypoints - blago zakrivljena linija
+                    const dx = item.x - fuseSource.x;
+                    const dy = item.y - fuseSource.y;
+                    const midX = fuseSource.x + dx * 0.5;
+                    const midY = fuseSource.y + dy * 0.1;
+                    d = `M ${fuseSource.x} ${fuseSource.y} Q ${midX} ${midY} ${item.x} ${item.y}`;
+                }
                 
                 line.setAttribute("d", d);
                 line.setAttribute("class", "connection-line");
@@ -519,7 +540,7 @@
                 layer.appendChild(line);
             }
 
-            // Crtanje isprekidanih linija ka children
+            // Crtanje isprekidanih linija ka children (sa podrškom za waypoints)
             if (item.children && item.children.length > 0) {
                 const parentUzemljenje = getUzemljenje(item);
                 let childLineColor = "#333"; // Crna za ostalo
@@ -532,14 +553,47 @@
                 item.children.forEach(childId => {
                     const child = getItemById(childId);
                     if (child) {
-                        const childLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                        childLine.setAttribute("x1", item.x);
-                        childLine.setAttribute("y1", item.y);
-                        childLine.setAttribute("x2", child.x);
-                        childLine.setAttribute("y2", child.y);
+                        // Proveri da li postoje waypoints za ovu vezu
+                        const waypoints = item.childWaypoints?.[childId];
+                        
+                        const childLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        let d;
+                        
+                        if (waypoints && waypoints.length > 0) {
+                            // Koristi zakrivljenu liniju kroz waypoints
+                            // Cubic Bezier ili više kvadratnih krivih
+                            if (waypoints.length === 1) {
+                                // Jedan waypoint - koristi quadratic curve
+                                const wp = waypoints[0];
+                                d = `M ${item.x} ${item.y} Q ${wp.x} ${wp.y} ${child.x} ${child.y}`;
+                            } else {
+                                // Više waypoints - koristi niz krivih
+                                d = `M ${item.x} ${item.y}`;
+                                const points = [{ x: item.x, y: item.y }, ...waypoints, { x: child.x, y: child.y }];
+                                
+                                for (let i = 1; i < points.length; i++) {
+                                    const prev = points[i - 1];
+                                    const curr = points[i];
+                                    // Kontrolna tačka na sredini
+                                    const ctrlX = (prev.x + curr.x) / 2;
+                                    const ctrlY = (prev.y + curr.y) / 2;
+                                    
+                                    if (i === 1) {
+                                        d += ` Q ${curr.x} ${curr.y}`;
+                                    }
+                                    d += ` ${curr.x} ${curr.y}`;
+                                }
+                            }
+                        } else {
+                            // Bez waypoints - prava linija (kao path za konzistentnost)
+                            d = `M ${item.x} ${item.y} L ${child.x} ${child.y}`;
+                        }
+                        
+                        childLine.setAttribute("d", d);
                         childLine.setAttribute("stroke", childLineColor);
                         childLine.setAttribute("stroke-width", "2");
                         childLine.setAttribute("stroke-dasharray", "5,5");
+                        childLine.setAttribute("fill", "none");
                         childLine.style.opacity = "0.7";
                         layer.appendChild(childLine);
                     }
